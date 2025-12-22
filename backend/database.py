@@ -1,10 +1,11 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base, DeclarativeBase
-from ..config import settings
+from sqlalchemy.orm import sessionmaker, DeclarativeBase
+
+from config import settings
 
 engine = create_engine(
-    settings.DATABASE_URL,
-    echo=settings.DEBUG #Logi SQL w trybie debug
+    settings.database_url,
+    echo=settings.database_echo #Logi SQL w trybie debug
 )
 
 SessionLocal = sessionmaker(
@@ -14,9 +15,11 @@ SessionLocal = sessionmaker(
 )
 
 class Base(DeclarativeBase):
+    """Bazowa klasa dla wszystkich modeli."""
     pass
 
 def get_db():
+    """Dependency dla FastAPI."""
     db = SessionLocal()
     try:
         yield db

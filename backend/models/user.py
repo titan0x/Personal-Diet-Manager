@@ -1,8 +1,14 @@
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, ForeignKey
-from ..databases.database import Base
 from datetime import datetime, date
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
+
+from sqlalchemy import String, ForeignKey, func
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from database import Base
+
+if TYPE_CHECKING:
+    from models.diet import DietPlan
+    from models.ingredient import Ingredient
 
 
 class User(Base):
@@ -22,27 +28,35 @@ class User(Base):
     height: Mapped[float]  # cm
 
     # Meta
-    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
     updated_at: Mapped[Optional[datetime]] = mapped_column(
-        onupdate=datetime.utcnow,
+        onupdate= func.now(),
         nullable=True
     )
 
+    
     # ✅ Relacje
+    
     physical_data: Mapped[list["PhysicalData"]] = relationship(
         back_populates="user",
         cascade="all, delete-orphan",
         order_by="PhysicalData.recorded_at.desc()"
     )
 
-    # ✅ DODANE - relacja do planów dietetycznych
     diet_plans: Mapped[list["DietPlan"]] = relationship(
         back_populates="user",
         cascade="all, delete-orphan",
         order_by="DietPlan.created_at.desc()"
     )
 
-    # ✅ Properties dla wygody
+    custom_ingredients: Mapped[list["Ingredient"]] = relationship(
+    back_populates="user",
+    cascade="all, delete-orphan"
+    )
+    
+    
+    # ✅ Properties
+    
     @property
     def age(self) -> int:
         """Wylicz wiek na podstawie daty urodzenia"""
@@ -68,19 +82,22 @@ class User(Base):
 
 class PhysicalData(Base):
     """Dane zmienne - tracking"""
+    __tablename__ = "physical_data"
+    
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
 
     weight: Mapped[float]  # kg
-    activity_level: Mapped[str]  # sedentary, light, moderate, active, very_active
+    activity_level: Mapped[str] = mapped_column(String(50)) # sedentary, light, moderate, active, very_active
 
     # Opcjonalne pomiary
-    body_fat_percentage: Mapped[Optional[float]]
-    muscle_mass: Mapped[Optional[float]]
-    waist_circumference: Mapped[Optional[float]]
+    body_fat_percentage: Mapped[Optional[float]] = mapped_column(nullable=True)
+    muscle_mass: Mapped[Optional[float]] = mapped_column(nullable=True)
+    waist_circumference: Mapped[Optional[float]] = mapped_column(nullable=True)
 
     # Meta
-    recorded_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
-    notes: Mapped[Optional[str]]  # Notatki użytkownika
+    recorded_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    notes: Mapped[Optional[str]] = mapped_column(nullable=True)
 
+    # Relacje
     user: Mapped["User"] = relationship(back_populates="physical_data")

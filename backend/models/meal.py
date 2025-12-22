@@ -1,9 +1,14 @@
-from datetime import time
-from datetime import datetime
-from sqlalchemy import ForeignKey
+from datetime import time, datetime
+from typing import Optional, TYPE_CHECKING
+
+from sqlalchemy import ForeignKey, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from ..databases.database import Base
-from typing import Optional
+
+from database import Base
+
+if TYPE_CHECKING:
+    from models.diet import DailyPlan
+    from models.ingredient import Ingredient
 
 class Meal(Base):
     __tablename__ = "meals"
@@ -12,7 +17,7 @@ class Meal(Base):
     daily_plan_id: Mapped[int] = mapped_column(ForeignKey("daily_plans.id"))
 
     # Info
-    name: Mapped[str]  # "Śniadanie", "Lunch"
+    name: Mapped[str] = mapped_column(String(100))  # "Śniadanie", "Lunch"
     meal_order: Mapped[int]  # 1, 2, 3, 4
     planned_time: Mapped[Optional[time]] = mapped_column(nullable=True)
 
@@ -41,7 +46,7 @@ class Meal(Base):
         self.calories = sum(mi.total_calories for mi in self.meal_ingredients)
         self.protein = sum(mi.total_protein for mi in self.meal_ingredients)
         self.carbs = sum(mi.total_carbs for mi in self.meal_ingredients)
-        self.fats = sum(mi.total_fat for mi in self.meal_ingredients)
+        self.fat = sum(mi.total_fat for mi in self.meal_ingredients)
         self.fiber = sum(mi.total_fiber for mi in self.meal_ingredients)
 
 
@@ -54,7 +59,7 @@ class MealIngredient(Base):
     ingredient_id: Mapped[int] = mapped_column(ForeignKey("ingredients.id"))
 
     quantity: Mapped[float]
-    unit: Mapped[str] = mapped_column(default="g")
+    unit: Mapped[str] = mapped_column(String(20), default="g")
 
     # Relacje
     meal: Mapped["Meal"] = relationship(back_populates="meal_ingredients")
