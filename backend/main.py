@@ -1,11 +1,19 @@
 from config import settings
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from routers import user_router
+
+
 
 app = FastAPI(
     title=settings.app_name,
+    description="API do zarządzania dietą",
     debug=settings.debug,
+    version="0.1.0"
 )
+
+app.include_router(user_router)
+
 
 # CORS dla Next.js
 app.add_middleware(
@@ -18,9 +26,10 @@ app.add_middleware(
 
 @app.get("/")
 def root():
-    return {"message": settings.app_name}
+    return {"message": "Personal Diet Manager API"}
+
 
 @app.get("/health")
-def health():
-    return {"message": "ok"}
+def health_check():
+    return {"status": "healthy"}
 
