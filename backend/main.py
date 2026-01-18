@@ -1,9 +1,12 @@
 from config import settings
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+
+
+from models import *
+
 from routers import user_router
-
-
+from auth import auth_router 
 
 app = FastAPI(
     title=settings.app_name,
@@ -23,6 +26,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Rejestracja routerów
+app.include_router(auth_router)
+app.include_router(user_router)
+
 
 @app.get("/")
 def root():

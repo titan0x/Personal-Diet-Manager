@@ -18,18 +18,16 @@ class Settings(BaseSettings):
     # Database
     database_url: str
     database_echo: bool = False
-    
-    # Security
-    secret_key: str | None = None
-    algorithm: str = "HS256"
-    access_token_expire_minutes: int = 30
-    refresh_token_expire_days: int = 7  
+
     
     # CORS
     cors_origins: list[str] = ["http://localhost:3000"]
 
           
-    
+        # JWT - NOWE
+    secret_key: str  # Losowy ciąg znaków do szyfrowania
+    algorithm: str = "HS256"  # Algorytm szyfrowania
+    access_token_expire_minutes: int = 30  # Token ważny 30 minut
     
     
 @lru_cache()

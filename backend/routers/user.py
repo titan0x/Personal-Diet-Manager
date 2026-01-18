@@ -5,8 +5,19 @@ from database import get_db
 from schemas.user import UserCreate, UserUpdate, UserResponse
 from cruds import user as user_crud
 from utils import hash_password
+from auth import get_current_user
+from models.user import User
+
 
 router = APIRouter(prefix="/users", tags=["users"])
+
+
+@router.get("/me", response_model=UserResponse)
+def get_current_user_data(
+    current_user: User = Depends(get_current_user)  # ← Dependency robi całą magię
+):
+    """Pobierz dane aktualnie zalogowanego użytkownika."""
+    return current_user
 
 
 @router.post("/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)

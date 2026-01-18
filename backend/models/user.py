@@ -9,6 +9,7 @@ from database import Base
 if TYPE_CHECKING:
     from models.diet import DietPlan
     from models.ingredient import Ingredient
+    from models.meal import MealTemplate
 
 
 class User(Base):
@@ -22,21 +23,19 @@ class User(Base):
     # Opcjonalne
     avatar_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
 
-    # Podstawowe - rzadko się zmieniają
+    # Podstawowe dane
     date_of_birth: Mapped[date]
-    gender: Mapped[str] = mapped_column(String(20))  # male, female, other
-    height: Mapped[float]  # cm
+    gender: Mapped[str] = mapped_column(String(20))
+    height: Mapped[float]
 
     # Meta
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
     updated_at: Mapped[Optional[datetime]] = mapped_column(
-        onupdate= func.now(),
+        onupdate=func.now(),
         nullable=True
     )
 
-    
-    # ✅ Relacje
-    
+    # Relacje
     physical_data: Mapped[list["PhysicalData"]] = relationship(
         back_populates="user",
         cascade="all, delete-orphan",
@@ -50,19 +49,22 @@ class User(Base):
     )
 
     custom_ingredients: Mapped[list["Ingredient"]] = relationship(
-    back_populates="user",
-    cascade="all, delete-orphan"
+        back_populates="user",
+        cascade="all, delete-orphan"
     )
-    
-    
-    # ✅ Properties
-    
+
+    meal_templates: Mapped[list["MealTemplate"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
+
+    # Properties
     @property
     def age(self) -> int:
         """Wylicz wiek na podstawie daty urodzenia"""
         today = date.today()
         return today.year - self.date_of_birth.year - (
-                (today.month, today.day) < (self.date_of_birth.month, self.date_of_birth.day)
+            (today.month, today.day) < (self.date_of_birth.month, self.date_of_birth.day)
         )
 
     @property
@@ -77,18 +79,16 @@ class User(Base):
             (plan for plan in self.diet_plans if plan.is_active),
             None
         )
-    
 
 
 class PhysicalData(Base):
-    """Dane zmienne - tracking"""
     __tablename__ = "physical_data"
-    
+
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
 
-    weight: Mapped[float]  # kg
-    activity_level: Mapped[str] = mapped_column(String(50)) # sedentary, light, moderate, active, very_active
+    weight: Mapped[float]
+    activity_level: Mapped[str] = mapped_column(String(50))
 
     # Opcjonalne pomiary
     body_fat_percentage: Mapped[Optional[float]] = mapped_column(nullable=True)
